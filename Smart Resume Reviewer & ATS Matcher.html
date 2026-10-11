@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Smart Resume Reviewer & ATS Matcher</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--ink:#12233b;--mute:#5d6b82;--line:#e0e6f0;--acc:#4b5bdc;--acc2:#e9ecff;--ok:#1f9d75;--okbg:#e2f6ee;--warn:#c9831a;--warnbg:#fdf1dc;--bad:#d9485f;--badbg:#fde8ec;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1626;--card:#16213a;--ink:#e8eefb;--mute:#97a6c3;--line:#26345a;--acc:#8794ff;--acc2:#222d5a;--ok:#4fd1a1;--okbg:#12362d;--warn:#f0b14f;--warnbg:#3a2d12;--bad:#ff7b90;--badbg:#3e1a24}}
+:root[data-theme="dark"]{--bg:#0e1626;--card:#16213a;--ink:#e8eefb;--mute:#97a6c3;--line:#26345a;--acc:#8794ff;--acc2:#222d5a;--ok:#4fd1a1;--okbg:#12362d;--warn:#f0b14f;--warnbg:#3a2d12;--bad:#ff7b90;--badbg:#3e1a24}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;line-height:1.55;min-height:100vh}
+.container{max-width:1140px;margin:0 auto;padding:0 18px}
+.row{display:flex;flex-wrap:wrap;gap:20px}.col{flex:1 1 400px;min-width:0}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:18px 0}
+.brand{font-weight:800;font-size:1.1rem;display:flex;gap:10px;align-items:center}
+.logo{width:34px;height:34px;border-radius:10px;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:800}
+.btn{border:0;border-radius:12px;padding:11px 20px;font:700 .95rem Manrope,sans-serif;cursor:pointer;transition:transform .15s,box-shadow .2s,background .2s;display:inline-flex;gap:8px;align-items:center;justify-content:center}
+.btn:active{transform:scale(.97)}.btn:focus-visible,textarea:focus-visible,.icon-btn:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.btn-primary{background:var(--acc);color:#fff;box-shadow:0 6px 18px -6px var(--acc)}.btn-primary:hover{box-shadow:0 10px 24px -6px var(--acc)}
+.btn-ghost{background:var(--acc2);color:var(--acc)}.btn[disabled]{opacity:.8;cursor:progress}
+.icon-btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;width:40px;height:40px;cursor:pointer;font-size:1.1rem}
+.hero{padding:26px 0 22px;max-width:720px}
+.hero h1{font-size:clamp(1.9rem,4.5vw,2.9rem);line-height:1.12;margin:0 0 12px;font-weight:800;letter-spacing:-.02em}
+.hero p{color:var(--mute);margin:0;font-size:1.05rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px}
+.card h2{font-size:1.05rem;margin:0 0 4px;font-weight:800}.sub{color:var(--mute);font-size:.88rem;margin:0 0 12px}
+.form-control{width:100%;min-height:270px;resize:vertical;border:1.5px solid var(--line);border-radius:12px;padding:14px;background:var(--bg);color:var(--ink);font:500 .92rem/1.55 Manrope,sans-serif;transition:border-color .2s,box-shadow .2s}
+.form-control:focus{outline:0;border-color:var(--acc);box-shadow:0 0 0 4px var(--acc2)}
+.form-control.invalid{border-color:var(--bad);animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.meta{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:.82rem;color:var(--mute);gap:8px;flex-wrap:wrap}
+.actions{display:flex;gap:12px;margin:22px 0 8px;flex-wrap:wrap}
+.spin{width:16px;height:16px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+#results{margin:26px 0 60px}
+.pop{animation:pop .5s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}}
+.score-wrap{display:flex;gap:28px;align-items:center;flex-wrap:wrap}
+.ring{position:relative;width:170px;height:170px;flex:none}
+.ring svg{transform:rotate(-90deg)}.ring circle{fill:none;stroke-width:13;stroke-linecap:round}
+.ring .bg{stroke:var(--line)}.ring .fg{transition:stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1)}
+.ring .num{position:absolute;inset:0;display:grid;place-content:center;text-align:center;font-weight:800;font-size:2.7rem;line-height:1}
+.ring .num small{font-size:.8rem;color:var(--mute);font-weight:600;margin-top:4px}
+.verdict{flex:1 1 260px}.verdict h3{margin:0 0 6px;font-size:1.4rem}.verdict p{margin:0;color:var(--mute)}
+.bars{display:grid;gap:12px;margin-top:20px}
+.bar-top{display:flex;justify-content:space-between;font-size:.86rem;font-weight:700;margin-bottom:5px}
+.track{height:9px;background:var(--line);border-radius:9px;overflow:hidden}.fill{height:100%;width:0;border-radius:9px;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:5px 12px;border-radius:99px;font-size:.84rem;font-weight:700;animation:pop .4s both}
+.chip.ok{background:var(--okbg);color:var(--ok)}.chip.miss{background:var(--badbg);color:var(--bad)}
+.h3{font-size:.95rem;font-weight:800;margin:0 0 10px;display:flex;gap:8px;align-items:center}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.checks li{display:flex;gap:10px;align-items:flex-start;font-size:.92rem}
+.dot{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:.75rem;font-weight:800;margin-top:1px}
+.dot.ok{background:var(--okbg);color:var(--ok)}.dot.warn{background:var(--warnbg);color:var(--warn)}.dot.bad{background:var(--badbg);color:var(--bad)}
+.tips li{padding:12px 14px;border-radius:12px;background:var(--bg);border-left:4px solid var(--acc)}
+.tips li.bad{border-color:var(--bad)}.tips li.warn{border-color:var(--warn)}
+.stack{display:grid;gap:20px;margin-top:20px}
+.toasts{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));right:16px;z-index:50;display:grid;gap:10px;width:min(360px,calc(100% - 32px))}
+.toast{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--acc);border-radius:14px;padding:12px 14px;box-shadow:0 14px 34px -10px rgba(10,20,50,.35);animation:tin .4s cubic-bezier(.2,.9,.3,1.2);position:relative;overflow:hidden}
+.toast.success{border-left-color:var(--ok)}.toast.error{border-left-color:var(--bad)}.toast.warning{border-left-color:var(--warn)}
+.toast b{display:block;font-size:.92rem}.toast span{font-size:.85rem;color:var(--mute)}
+.toast i{position:absolute;left:0;bottom:0;height:3px;background:currentColor;opacity:.35;animation:life 4s linear forwards}
+.toast.out{animation:tout .3s forwards}
+@keyframes tin{from{opacity:0;transform:translateX(40px)}}@keyframes tout{to{opacity:0;transform:translateX(40px)}}@keyframes life{from{width:100%}to{width:0}}
+.hidden{display:none}
+.foot{text-align:center;color:var(--mute);font-size:.8rem;padding-bottom:30px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="container">
+  <nav class="nav">
+    <div class="brand"><div class="logo">R</div>ResumeMatch</div>
+    <button class="icon-btn" id="theme" aria-label="Toggle theme">◐</button>
+  </nav>
+  <header class="hero">
+    <h1>See your resume the way an ATS does.</h1>
+    <p>Paste your resume and a job description. Get a match score, the keywords you're missing, and fixes you can apply in minutes.</p>
+  </header>
+
+  <div class="row">
+    <section class="col card">
+      <h2>Your resume</h2><p class="sub">Paste text or upload a PDF, Word (.docx) or .txt file.</p>
+      <textarea id="resume" class="form-control" placeholder="Paste your resume here..." aria-label="Resume text"></textarea>
+      <div class="meta"><span id="rc">0 words</span><label class="btn btn-ghost" style="padding:7px 14px;cursor:pointer">Upload file<input id="file" type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" class="hidden"></label></div>
+    </section>
+    <section class="col card">
+      <h2>Job description</h2><p class="sub">Paste the full posting for the best match.</p>
+      <textarea id="jd" class="form-control" placeholder="Paste the job description here..." aria-label="Job description"></textarea>
+      <div class="meta"><span id="jc">0 words</span><span>Keywords are pulled from this text</span></div>
+    </section>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="go">Analyze match</button>
+    <button class="btn btn-ghost" id="sample">Load sample</button>
+    <button class="btn btn-ghost" id="clear">Clear all</button>
+  </div>
+
+  <div id="results" class="hidden" aria-live="polite"></div>
+  <p class="foot">Analysis runs in your browser. Nothing is uploaded or stored.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const R=$('#resume'),J=$('#jd'),GO=$('#go');
+const SKILLS=['javascript','typescript','python','java','react','angular','vue','node.js','sql','mongodb','aws','azure','docker','kubernetes','git','ci/cd','rest api','html','css','agile','scrum','machine learning','data analysis','excel','tableau','power bi','communication','leadership','project management','figma','testing','jest','linux','c++','c#','php','django','flask','spring boot','graphql','redis','postgresql','mysql','devops','terraform','seo','salesforce','problem solving','teamwork','bootstrap','tailwind','microservices'];
+const STOP=new Set('about above across after also and any are around been being both can candidate company could define each experience for from have has having into join looking must our over role team that the their them they this those through together using want were what when where which while will with within work working you your years year strong ability skills knowledge required preferred responsibilities requirements plus including etc well able new highly across looking more than other such'.split(' '));
+const VERBS='led built developed designed improved increased reduced managed created implemented launched optimized delivered automated analyzed collaborated mentored architected migrated streamlined achieved drove owned shipped scaled'.split(' ');
+const WEAK=['responsible for','worked on','helped with','duties included','hard working','hardworking','team player','results-oriented','detail-oriented','go-getter'];
+const esc=s=>s.replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&');
+const has=(t,k)=>new RegExp('(?<![a-z0-9])'+esc(k)+'(?![a-z0-9])','i').test(t);
+const wc=t=>(t.trim().match(/\S+/g)||[]).length;
+
+function toast(type,title,msg){
+  const el=document.createElement('div');el.className='toast '+type;
+  el.innerHTML=`<b>${title}</b><span>${msg}</span><i></i>`;
+  $('#toasts').appendChild(el);
+  const kill=()=>{el.classList.add('out');setTimeout(()=>el.remove(),300)};
+  el.onclick=kill;setTimeout(kill,4000);
+}
+function counts(){$('#rc').textContent=wc(R.value)+' words';$('#jc').textContent=wc(J.value)+' words'}
+[R,J].forEach(e=>e.addEventListener('input',()=>{e.classList.remove('invalid');counts()}));
+$('#theme').onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).getPropertyValue('--bg').trim()==='#0e1626';r.dataset.theme=d?'light':'dark'};
+$('#file').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;e.target.value='';
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  if(!['pdf','docx','txt'].includes(ext)){toast('error','Unsupported file',ext==='doc'?'Old .doc files are not supported. Save it as .docx or PDF and upload again.':'Upload a PDF, Word (.docx) or .txt file.');return}
+  if(f.size>10*1024*1024){toast('error','File too large','Keep the file under 10 MB.');return}
+  toast('info','Reading file',f.name);
+  try{
+    let text='';
+    if(ext==='txt'){text=await f.text()}
+    else if(ext==='docx'){
+      if(!window.mammoth)throw new Error('lib');
+      text=(await mammoth.extractRawText({arrayBuffer:await f.arrayBuffer()})).value;
+    }else{
+      if(!window.pdfjsLib)throw new Error('lib');
+      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;
+      for(let i=1;i<=pdf.numPages;i++){
+        const c=await (await pdf.getPage(i)).getTextContent();
+        text+=c.items.map(t=>t.str+(t.hasEOL?'\n':' ')).join('')+'\n';
+      }
+    }
+    text=text.replace(/[ \t]+/g,' ').replace(/ ?\n ?/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+    if(text.length<20){toast('warning','No text found','This looks like a scanned or image-only file. Paste the text instead.');return}
+    R.value=text;R.classList.remove('invalid');counts();
+    toast('success','File loaded',f.name+' is ready to analyze.');
+  }catch(err){
+    toast('error','Could not read file',err.message==='lib'?'The file reader failed to load. Check your connection and try again.':'The file may be corrupted or password-protected. Try another copy or paste the text.');
+  }
+};
+$('#clear').onclick=()=>{R.value=J.value='';counts();$('#results').classList.add('hidden');toast('info','Cleared','Both fields are empty.')};
+$('#sample').onclick=()=>{
+  R.value=`Priya Raman
+priya.raman@email.com | +91 98765 43210 | linkedin.com/in/priyaraman | github.com/priyar
+
+Summary
+Frontend developer with 4 years of experience building responsive web apps with JavaScript, React and Bootstrap.
+
+Experience
+Frontend Developer, BrightLoop Technologies (2022 - Present)
+- Built a React dashboard used by 12,000 customers, improving task completion by 28%
+- Responsible for REST API integration and unit testing with Jest
+- Reduced page load time by 40% by optimizing images and code splitting
+- Worked on Git workflows and agile sprints with a team of 8
+
+Junior Developer, PixelNest (2020 - 2022)
+- Developed 15 landing pages using HTML, CSS and JavaScript
+- Collaborated with designers in Figma
+
+Education
+B.E. Computer Science, Anna University, 2020
+
+Skills
+JavaScript, React, HTML, CSS, Bootstrap, Git, Jest, Figma, REST API`;
+  J.value=`Senior Frontend Engineer
+We are looking for a frontend engineer with strong React and TypeScript skills to build fast, accessible web apps. You will work with REST API and GraphQL services, write unit tests with Jest, and deploy using Docker and CI/CD pipelines on AWS. Experience with agile teams, performance optimization, and mentoring junior developers is a plus. Knowledge of Node.js and Tailwind is preferred. Strong communication and leadership skills are required.`;
+  counts();toast('success','Sample loaded','Press Analyze match to see the report.');
+};
+
+function jdKeywords(jd){
+  const found=SKILLS.filter(k=>has(jd,k));
+  const freq={};
+  (jd.toLowerCase().match(/[a-z][a-z+#.]{3,}/g)||[]).forEach(w=>{w=w.replace(/\.$/,'');if(!STOP.has(w))freq[w]=(freq[w]||0)+1});
+  const extra=Object.entries(freq).filter(([w,c])=>c>=2&&!found.some(f=>f.includes(w))).sort((a,b)=>b[1]-a[1]).slice(0,8).map(e=>e[0]);
+  return [...new Set([...found,...extra])];
+}
+
+function analyze(resume,jd){
+  const kws=jdKeywords(jd);
+  const matched=kws.filter(k=>has(resume,k)),missing=kws.filter(k=>!has(resume,k));
+  const kwScore=kws.length?matched.length/kws.length*100:0;
+  const email=/[\w.+-]+@[\w-]+\.[\w.]+/.test(resume),phone=/(\+?\d[\d\s().-]{8,}\d)/.test(resume),link=/linkedin\.com|github\.com|portfolio/i.test(resume);
+  const secs={Summary:/summary|objective|profile|about/i,Experience:/experience|employment|work history/i,Education:/education|degree|university|college/i,Skills:/skills|technologies|tech stack/i};
+  const secRes=Object.entries(secs).map(([n,r])=>[n,r.test(resume)]);
+  const secScore=(secRes.filter(s=>s[1]).length+(email?1:0)+(phone?1:0))/6*100;
+  const nums=(resume.match(/\d+(\.\d+)?\s?(%|x|k\b|m\b)|[$₹€]\s?\d[\d,]*|\b\d{2,}[,\d]*\+?\s?(users|customers|clients|projects|pages|people|members)/gi)||[]).length;
+  const impactScore=Math.min(nums/5,1)*100;
+  const usedVerbs=VERBS.filter(v=>has(resume,v));const verbScore=Math.min(usedVerbs.length/6,1)*100;
+  const weak=WEAK.filter(w=>has(resume,w));
+  const words=wc(resume);const lenScore=words>=300&&words<=900?100:words>=150?60:30;
+  const total=Math.round(kwScore*.5+secScore*.2+impactScore*.15+verbScore*.1+lenScore*.05-weak.length*2);
+  const score=Math.max(0,Math.min(100,total));
+  const tips=[];
+  if(missing.length)tips.push(['bad',`Add these missing keywords where they honestly apply: <b>${missing.slice(0,6).join(', ')}</b>.`]);
+  secRes.filter(s=>!s[1]).forEach(s=>tips.push(['warn',`Add a clear <b>${s[0]}</b> heading so ATS parsers can find it.`]));
+  if(!email||!phone)tips.push(['bad','Put your email and phone number at the top of the resume.']);
+  if(!link)tips.push(['warn','Add a LinkedIn or GitHub link.']);
+  if(nums<4)tips.push(['warn',`Only ${nums} measurable result${nums===1?'':'s'} found. Add numbers: percentages, users, revenue, time saved.`]);
+  if(weak.length)tips.push(['warn',`Replace weak phrases (<b>${weak.join(', ')}</b>) with strong verbs like "led" or "built".`]);
+  if(usedVerbs.length<5)tips.push(['warn','Start more bullet points with action verbs such as developed, optimized or delivered.']);
+  if(words<300)tips.push(['warn',`Your resume has ${words} words. Aim for 300 to 800 to give the ATS enough to match.`]);
+  if(words>900)tips.push(['warn',`At ${words} words, your resume is long. Trim older or less relevant roles.`]);
+  if(!tips.length)tips.push(['ok','Great work. Your resume covers the essentials for this role.']);
+  return {score,kws,matched,missing,secRes,email,phone,link,nums,usedVerbs,weak,words,bars:[['Keyword match',kwScore],['Structure and contact',secScore],['Measurable impact',impactScore],['Action verbs',verbScore]],tips};
+}
+
+const colorFor=s=>s>=75?'var(--ok)':s>=50?'var(--warn)':'var(--bad)';
+function render(a){
+  const verdict=a.score>=75?['Strong match','You are likely to pass most ATS filters for this role.']:a.score>=50?['Decent match','A few targeted edits can lift you into the top tier.']:['Needs work','Your resume is missing key terms and structure for this role.'];
+  const C=2*Math.PI*72;
+  const mark=(ok,t,warn)=>`<li><span class="dot ${ok?'ok':warn?'warn':'bad'}">${ok?'✓':warn?'!':'✕'}</span>${t}</li>`;
+  $('#results').innerHTML=`
+  <div class="card pop"><div class="score-wrap">
+    <div class="ring"><svg width="170" height="170" viewBox="0 0 170 170"><circle class="bg" cx="85" cy="85" r="72"/><circle class="fg" id="fg" cx="85" cy="85" r="72" stroke="${colorFor(a.score)}" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg>
+      <div class="num"><span id="n">0</span><small>ATS score</small></div></div>
+    <div class="verdict"><h3>${verdict[0]}</h3><p>${verdict[1]}</p>
+      <p style="margin-top:8px;font-size:.88rem">${a.matched.length} of ${a.kws.length} job keywords found · ${a.words} words</p></div></div>
+    <div class="bars">${a.bars.map(b=>`<div><div class="bar-top"><span>${b[0]}</span><span>${Math.round(b[1])}%</span></div><div class="track"><div class="fill" data-w="${b[1]}" style="background:${colorFor(b[1])}"></div></div></div>`).join('')}</div></div>
+  <div class="row stack">
+    <div class="col card pop"><div class="h3">Keywords you have</div><div class="chips">${a.matched.map((k,i)=>`<span class="chip ok" style="animation-delay:${i*40}ms">${k}</span>`).join('')||'<span class="sub">None found.</span>'}</div></div>
+    <div class="col card pop"><div class="h3">Keywords to add</div><div class="chips">${a.missing.map((k,i)=>`<span class="chip miss" style="animation-delay:${i*40}ms">${k}</span>`).join('')||'<span class="sub">Nothing missing. Nice.</span>'}</div></div>
+  </div>
+  <div class="row stack">
+    <div class="col card pop"><div class="h3">Resume health</div><ul class="checks">
+      ${a.secRes.map(s=>mark(s[1],s[0]+' section '+(s[1]?'found':'missing'))).join('')}
+      ${mark(a.email,'Email address '+(a.email?'found':'missing'))}${mark(a.phone,'Phone number '+(a.phone?'found':'missing'))}${mark(a.link,'Profile link '+(a.link?'found':'not found'),true)}
+      ${mark(a.nums>=4,a.nums+' measurable results',a.nums>0)}${mark(!a.weak.length,a.weak.length?'Weak phrases: '+a.weak.join(', '):'No weak phrases',false)}</ul></div>
+    <div class="col card pop"><div class="h3">What to fix first</div><ul class="checks tips">${a.tips.map(t=>`<li class="${t[0]}">${t[1]}</li>`).join('')}</ul></div>
+  </div>`;
+  const box=$('#results');box.classList.remove('hidden');
+  box.scrollIntoView({behavior:'smooth',block:'start'});
+  requestAnimationFrame(()=>setTimeout(()=>{
+    $('#fg').style.strokeDashoffset=C*(1-a.score/100);
+    document.querySelectorAll('.fill').forEach(f=>f.style.width=f.dataset.w+'%');
+    const n=$('#n'),t0=performance.now();
+    (function step(t){const p=Math.min((t-t0)/1400,1);n.textContent=Math.round(a.score*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step)})(t0);
+  },80));
+}
+
+GO.onclick=()=>{
+  const r=R.value.trim(),j=J.value.trim();
+  if(!r||!j){
+    [[R,r],[J,j]].forEach(([e,v])=>{if(!v){e.classList.remove('invalid');void e.offsetWidth;e.classList.add('invalid')}});
+    toast('error','Missing text',(!r&&!j?'Add your resume and a job description':!r?'Add your resume':'Add the job description')+' to run the analysis.');return;
+  }
+  if(wc(r)<40){toast('warning','Resume looks short','Only '+wc(r)+' words. Paste the full text for accurate results.')}
+  if(wc(j)<25){toast('warning','Job description is short','More detail gives better keyword matching.')}
+  GO.disabled=true;GO.innerHTML='<span class="spin"></span>Analyzing...';
+  setTimeout(()=>{
+    const a=analyze(r,j);render(a);
+    GO.disabled=false;GO.textContent='Analyze match';
+    toast(a.score>=75?'success':a.score>=50?'warning':'error','Analysis complete','Your ATS score is '+a.score+'/100.');
+  },1100);
+};
+</script>
+</body>
+</html>
